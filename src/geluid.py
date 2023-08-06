@@ -1,4 +1,3 @@
-import sounddevice as sd
 import numpy as np
 import time
 
@@ -10,15 +9,17 @@ def get_sine_waves(samplerate, length, amplitude, frequency, data_type=np.float3
     return data
 
 def arpeggio_up(
-        output,
+        sd, #sounddevice
         steps=6,
-        samplerate=sd.default.samplerate,
         note_length=0.25,
         base_frequency=100,
         amplitude=0.5,
         ratio=1.5,
         iterations=1
     ):
+    samplerate = sd.default.samplerate
+    output = sd.OutputStream()
+    output.start()
     duration = iterations * steps * note_length
     end = time.time() + duration
     while time.time() < end:
@@ -29,36 +30,35 @@ def arpeggio_up(
             frequency *= ratio
             frequency %= (base_frequency * 4)
             frequency += base_frequency
+    output.stop()
+    output.close()
 
-def recursive_arpeggio_up(output, note_length=0.5, base_frequency=44):
-    arpeggio_up(output, note_length=note_length, base_frequency=base_frequency)
-    recursive_arpeggio_up(output, note_length=note_length * 0.7, base_frequency=base_frequency * 1.5)
+def recursive_arpeggio_up(sd, note_length=0.5, base_frequency=44):
+    arpeggio_up(sd, note_length=note_length, base_frequency=base_frequency)
+    recursive_arpeggio_up(sd, note_length=note_length * 0.7, base_frequency=base_frequency * 1.5)
 
 
-def timed_arpeggio(output, total_time=3, note_length=0.125,base_frequency=100):
+def timed_arpeggio(sd, total_time=3, note_length=0.125,base_frequency=100):
     steps = int(total_time / note_length)
 
-    arpeggio_up(output=output, steps = steps, note_length=note_length, base_frequency=base_frequency)
+    arpeggio_up(sd=sd, steps = steps, note_length=note_length, base_frequency=base_frequency)
 
-def fibonacci_timed_arpeggio(output, iterations=7, base_frequency=100, fmod=1):
+def fibonacci_timed_arpeggio(sd, iterations=7, base_frequency=100, fmod=1):
     prev = 0
     current = 1
     total_time = current
     frequency=base_frequency
     for i in range(iterations):
-        timed_arpeggio(output,total_time=total_time, base_frequency=frequency)
+        timed_arpeggio(sd,total_time=total_time, base_frequency=frequency)
         total_time += prev
         prev = current
         current = total_time
         frequency*=fmod
 
-def harmonics(output, iterations=7):
-    stream1 = sd.OutputStream()
-    stream1.start()
-    fibonacci_timed_arpeggio(output, iterations,base_frequency=100,fmod=1.1)
-    fibonacci_timed_arpeggio(stream1, iterations, base_frequency=150,fmod=1.1)
-    stream1.stop()
-    stream1.close()
+def harmonics(sd, iterations=7):
+    
+    fibonacci_timed_arpeggio(sd, iterations,base_frequency=100,fmod=1.1)
+    fibonacci_timed_arpeggio(sd, iterations, base_frequency=150,fmod=1.1)
 
 
 if __name__ == '__main__':
@@ -67,9 +67,5 @@ if __name__ == '__main__':
     sd.default.channels = 1 # monogeluid
     sd.default.device = 1
     
-    stream = sd.OutputStream()
-    stream.start()
-    fibonacci_timed_arpeggio(stream,iterations=5)
-    harmonics(stream,iterations=9)
-    stream.stop()
-    stream.close()
+    fibonacci_timed_arpeggio(sd,iterations=5)
+    harmonics(sd,iterations=9)
