@@ -9,14 +9,27 @@ sd.default.channels = 1 # monogeluid
 sd.default.device = 1
 
 
-def polyphonic_arps():
-    x = thrd.Thread(target=
+def polyphonic_arps(output, iterations=7):
+    stream_a = sd.OutputStream()
+    stream_b = sd.OutputStream()
+    stream_a.start()
+    stream_b.start()
+    a = thrd.Thread(target=fibonacci_timed_arpeggio, kwargs={'output':stream_a, 'iterations':iterations,'base_frequency':100,'fmod':1})
+    b = thrd.Thread(target=fibonacci_timed_arpeggio, kwargs={'output':stream_b, 'iterations':iterations,'base_frequency':300, 'fmod' : 1})
+    b.start()
+    a.start()
+    while a.is_alive() or b.is_alive():
+        pass
+    stream_a.stop()
+    stream_b.stop()
+    stream_a.close()
+    stream_b.close()
 
 
 if __name__ == '__main__':
     stream = sd.OutputStream()
     stream.start()
-    fibonacci_timed_arpeggio(stream,iterations=5)
-    harmonics(stream,iterations=9)
+    # fibonacci_timed_arpeggio(stream,iterations=5)
+    polyphonic_arps(stream,iterations=9)
     stream.stop()
     stream.close()
