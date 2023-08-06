@@ -2,10 +2,6 @@ import sounddevice as sd
 import numpy as np
 import time
 
-samplerate = sd.default.samplerate = sd.query_devices(1)['default_samplerate'] # kies default geluidsoutput, meestal index 0
-sd.default.channels = 1 # monogeluid
-sd.default.device = 1
-
 def get_sine_waves(samplerate, length, amplitude, frequency, data_type=np.float32):
     data = np.sin(
             np.arange(length * samplerate, dtype=data_type) * amplitude * 2 * np.pi * frequency / samplerate
@@ -66,6 +62,11 @@ def harmonics(output, iterations=7):
 
 
 if __name__ == '__main__':
+
+    samplerate = sd.default.samplerate = sd.query_devices(1)['default_samplerate'] # kies default geluidsoutput, meestal index 0
+    sd.default.channels = 1 # monogeluid
+    sd.default.device = 1
+    
     stream = sd.OutputStream()
     stream.start()
     fibonacci_timed_arpeggio(stream,iterations=5)

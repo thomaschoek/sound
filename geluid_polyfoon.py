@@ -4,9 +4,7 @@ import time
 import threading as thrd
 from geluid import *
 
-samplerate = sd.default.samplerate = sd.query_devices(1)['default_samplerate'] # kies default geluidsoutput, meestal index 0
-sd.default.channels = 1 # monogeluid
-sd.default.device = 1
+
 
 
 def polyphonic_arps(output, iterations=7):
@@ -27,6 +25,12 @@ def polyphonic_arps(output, iterations=7):
 
 
 if __name__ == '__main__':
+
+    samplerate = sd.default.samplerate = sd.query_devices(10)['default_samplerate'] # kies default geluidsoutput, meestal index 0
+    sd.default.channels = 1 # monogeluid
+    sd.default.device = 1
+
+    
     stream = sd.OutputStream()
     stream.start()
     # fibonacci_timed_arpeggio(stream,iterations=5)
